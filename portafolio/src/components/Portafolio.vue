@@ -2,32 +2,70 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import profileImg from '../assets/profile.png'
 import { completedProjects, skillGroups } from '../data/portfolioData'
-import { startHeroBackground } from '../helpers/heroBackground'
+import { startHeroBackground, type HeroBackgroundController } from '../helpers/heroBackground'
 
 const bgCanvas = ref<HTMLCanvasElement | null>(null)
+const isEasterEggMode = ref(false)
 
-let stopHeroBackground: (() => void) | null = null
+let heroBackgroundController: HeroBackgroundController | null = null
+
+const toggleEasterEggMode = (): void => {
+  isEasterEggMode.value = !isEasterEggMode.value
+  heroBackgroundController?.setGameMode(isEasterEggMode.value)
+}
 
 onMounted(() => {
   const canvas = bgCanvas.value
   if (!canvas) return
 
-  stopHeroBackground = startHeroBackground(canvas)
+  heroBackgroundController = startHeroBackground(canvas)
 })
 
 onBeforeUnmount(() => {
-  stopHeroBackground?.()
-  stopHeroBackground = null
+  heroBackgroundController?.destroy()
+  heroBackgroundController = null
 })
 </script>
 
 <template>
-  <section class="portfolio-shell">
+  <section class="portfolio-shell" :class="{ 'easter-egg-mode': isEasterEggMode }">
     <canvas ref="bgCanvas" class="background-canvas" aria-hidden="true"></canvas>
-    <div class="background-overlay" aria-hidden="true"></div>
+    <div class="background-overlay" :class="{ 'easter-egg-overlay': isEasterEggMode }" aria-hidden="true"></div>
 
-    <main class="content">
+    <button
+      v-if="isEasterEggMode"
+      type="button"
+      class="game-toggle game-toggle-floating active"
+      aria-pressed="true"
+      aria-label="Disable game mode"
+      @click="toggleEasterEggMode"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M7.4 6.4h9.2a3.3 3.3 0 0 1 3.2 2.55l1.1 4.69a2.25 2.25 0 0 1-2.19 2.76h-.87a2.74 2.74 0 0 1-2.46-1.56l-.53-1.06H9.12l-.53 1.06a2.74 2.74 0 0 1-2.46 1.56h-.87a2.25 2.25 0 0 1-2.2-2.76l1.12-4.69A3.3 3.3 0 0 1 7.4 6.4Zm.62 2a1.32 1.32 0 0 0-1.27 1.03l-1.12 4.69a.25.25 0 0 0 .25.3h.87a.73.73 0 0 0 .65-.4l1.08-2.15H16.5l1.08 2.15a.73.73 0 0 0 .65.4h.87a.25.25 0 0 0 .24-.3l-1.11-4.69a1.32 1.32 0 0 0-1.27-1.03Zm1.1 1.72h1.64v1.66H9.12v1.62H7.47v-1.62H5.83v-1.66h1.64V8.5h1.65Zm7.1.31a1.04 1.04 0 1 1 0 2.08 1.04 1.04 0 0 1 0-2.08Zm2.34 1.45a1.04 1.04 0 1 1 0 2.08 1.04 1.04 0 0 1 0-2.08Z"
+        />
+      </svg>
+      <span>Exit Game Mode</span>
+    </button>
+
+    <main v-if="!isEasterEggMode" class="content">
       <header class="hero reveal-1">
+        <button
+          type="button"
+          class="game-toggle"
+          :class="{ active: isEasterEggMode }"
+          :aria-pressed="isEasterEggMode"
+          :aria-label="isEasterEggMode ? 'Disable game mode' : 'Enable game mode'"
+          @click="toggleEasterEggMode"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M7.4 6.4h9.2a3.3 3.3 0 0 1 3.2 2.55l1.1 4.69a2.25 2.25 0 0 1-2.19 2.76h-.87a2.74 2.74 0 0 1-2.46-1.56l-.53-1.06H9.12l-.53 1.06a2.74 2.74 0 0 1-2.46 1.56h-.87a2.25 2.25 0 0 1-2.2-2.76l1.12-4.69A3.3 3.3 0 0 1 7.4 6.4Zm.62 2a1.32 1.32 0 0 0-1.27 1.03l-1.12 4.69a.25.25 0 0 0 .25.3h.87a.73.73 0 0 0 .65-.4l1.08-2.15H16.5l1.08 2.15a.73.73 0 0 0 .65.4h.87a.25.25 0 0 0 .24-.3l-1.11-4.69a1.32 1.32 0 0 0-1.27-1.03Zm1.1 1.72h1.64v1.66H9.12v1.62H7.47v-1.62H5.83v-1.66h1.64V8.5h1.65Zm7.1.31a1.04 1.04 0 1 1 0 2.08 1.04 1.04 0 0 1 0-2.08Zm2.34 1.45a1.04 1.04 0 1 1 0 2.08 1.04 1.04 0 0 1 0-2.08Z"
+            />
+          </svg>
+          <span>{{ isEasterEggMode ? 'Game Mode On' : 'Game Mode' }}</span>
+        </button>
+
         <div class="hero-copy">
           <p class="tag">Software Engineer</p>
           <h1>Hello! Welcome to my profile, I'm Jonathan Porras Sandi</h1>
